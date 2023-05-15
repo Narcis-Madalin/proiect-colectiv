@@ -1,0 +1,37 @@
+.classroom-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.classroom {
+  width: 80px; /* adjust the size to fit the classroom name */
+  height: 80px; /* adjust the size to fit the classroom name */
+  border: 1px solid #ccc;
+  margin: 5px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 14px; /* adjust the font size to fit the classroom name */
+}
+
+.classroom.booked {
+  background-color: #ff6666; /* red color for booked classrooms */
+  cursor: not-allowed;
+}
+
+.classroom.available {
+  background-color: #99ff99; /* green color for available classrooms */
+  cursor: pointer;
+}
+
+.classroom:hover {
+  background-color: #66b3ff;
+  color: white;
+}
+
+.classroom.selected {
+  background-color: #003366;
+  color: white;
+}
