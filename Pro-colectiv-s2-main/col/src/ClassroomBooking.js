@@ -10,16 +10,18 @@ import {
 } from "@material-ui/core";
 import "./ClassroomBooking.css";
 import ReservationPage from "./RESERVATION";
+import { DemoContainer } from "@mui/x-date-pickers/internals/demo";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-import { StaticDateTimePicker } from "@mui/x-date-pickers/StaticDateTimePicker";
+import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
 import { Button } from "@mui/material";
+import { AuthContext } from "./AuthContext";
 
 const ClassroomBooking = () => {
   const [selectedClassroom, setSelectedClassroom] = useState(null);
   const [reservationSubmitted, setReservationSubmitted] = useState(false);
 
-  const [selectedDateTime, setSelectedDateTime] = useState(null);
+  const [selectedDateTime, setSelectedDateTime] = React.useState(new Date());
 
   //   function setClassrooms(arr) {
   //     classrooms = arr;
@@ -180,8 +182,15 @@ const ClassroomBooking = () => {
     return reservation.date === selectedDate; // Filter reservations by selected date
   };
 
-  const handleDateTimeChange = (dateTime) => {
-    setSelectedDateTime(dateTime);
+  const handleDateTimeChange = (selectedDateTime) => {
+    console.log("Selected Date and Time:", selectedDateTime);
+  };
+
+  // Adjust the hour based on the desired time zone offset
+  const adjustTimeZoneOffset = (date) => {
+    const timeZoneOffset = 180; // Replace with the desired time zone offset in minutes
+    const adjustedDate = new Date(date.getTime() + timeZoneOffset * 60 * 1000);
+    return adjustedDate;
   };
 
   const handleOkButtonClick = () => {
@@ -282,12 +291,12 @@ const ClassroomBooking = () => {
         <div>
           <h3>Reservations</h3>
           <LocalizationProvider dateAdapter={AdapterDayjs}>
-            <StaticDateTimePicker
-              orientation="landscape"
-              value={selectedDateTime}
-              onChange={handleDateTimeChange}
-              renderInput={(props) => <input {...props} readOnly />} // Make the input field read-only
-            />
+            <DemoContainer components={["DateTimePicker"]}>
+              <DateTimePicker
+                label="Basic date time picker"
+                onChange={handleDateTimeChange}
+              />
+            </DemoContainer>
           </LocalizationProvider>
           <Button variant="contained" onClick={handleOkButtonClick}>
             OK

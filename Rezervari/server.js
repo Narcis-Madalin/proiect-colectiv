@@ -4,6 +4,9 @@ const bcript = require("bcrypt"); // importing bcript package
 const port = 8000;
 const sql = require("mssql");
 const moment = require("moment");
+const jwt = require("jsonwebtoken");
+const { expressjwt: expressjwt } = require("express-jwt");
+const session = require("express-session");
 require("dotenv").config();
 
 const dbConfig = {
@@ -15,6 +18,17 @@ const dbConfig = {
 };
 
 app.use(express.json());
+
+app.use(
+  session({
+    secret: "a40a1ee84f4322eb0fc6c259823d5d70013ca7b7c3ac03473c4fa88a2c69cda9", // Replace with your own secret key
+    resave: false,
+    saveUninitialized: true,
+  })
+);
+
+const secretKey =
+  "a40a1ee84f4322eb0fc6c259823d5d70013ca7b7c3ac03473c4fa88a2c69cda9"; // Replace with your own secret key
 
 app.post("/register", (req, res) => {
   const { name, FirstName, email, password } = req.body;
@@ -88,8 +102,19 @@ app.post("/login", (req, res) => {
         .query(loginQuery)
         .then((loginResult) => {
           if (loginResult.recordset.length === 1) {
-            // User exists and the password matches, send success response
-            res.json({ message: "Login successful" });
+            // User exists and the password matches, generate JWT
+            const token = jwt.sign({ email }, secretKey, {
+              expiresIn: "1h", // Token expires in 1 hour
+            });
+
+            // Save user's ID in session
+            req.session.userId = loginResult.recordset[0].ID;
+
+            res.json({
+              message: "Login successful",
+              token,
+              userId: loginResult.recordset[0].ID,
+            });
           } else {
             // User doesn't exist or the password doesn't match, send error response
             res.status(401).json({ error: "Invalid email or password" });
@@ -148,7 +173,10 @@ app.post("/login", (req, res) => {
 //   });
 // });
 
-app.post("/Reservation", (req, res) => {
+// Middleware to verify JWT
+const authenticate = expressjwt({ secret: secretKey, algorithms: ["RS256"] });
+
+app.post("/Reservation", authenticate, (req, res) => {
   const { name, email, classroom, date, StartTime, EndTime } = req.body;
 
   // Check the format of the StartTime parameter using a regular expression
@@ -214,7 +242,7 @@ app.get("/api/reservations/:classroomName", function (req, res) {
         .request()
         .input("sala", sql.VarChar(5), name)
         .query(
-          `SELECT TOP 1 Data_rezervare, Ora_start, Ora_final, CONVERT(varchar(10), Data_rezervare, 120) AS Data_rezervare_str, CONVERT(varchar(8), Ora_start, 108) AS Ora_start_str, CONVERT(varchar(8), Ora_final, 108) AS Ora_final_str FROM REZERVATION WHERE Sala = @sala AND Data_rezervare >= CONVERT(date, GETDATE()) ORDER BY Ora_start DESC`
+          `SELECT TOP 1 Data_rezervare, Ora_start, Ora_final, CONVERT(varchar(10), Data_rezervare, 120) AS Data_rezervare_str, CONVERT(varchar(8), Ora_start, 108) AS Ora_start_str, CONVERT(varchar(8), Ora_final, 108) AS Ora_final_str FROM REZERVATION WHERE Sala = @sala AND Data_rezervare = CONVERT(date, GETDATE()) AND CONVERT(time, GETDATE()) BETWEEN Ora_start AND Ora_final ORDER BY Ora_start DESC`
         );
     })
     .then((result) => {
@@ -286,7 +314,7 @@ app.get("/api/reservations/test/:name", function (req, res) {
         .request()
         .input("sala", sql.VarChar(5), name)
         .query(
-          `SELECT *, CONVERT(varchar(10), Data_rezervare, 120) AS Data_rezervare_str, CONVERT(varchar(8), Ora_start, 108) AS Ora_start_str, CONVERT(varchar(8), Ora_final, 108) AS Ora_final_str FROM REZERVATION WHERE Sala = @sala AND Data_rezervare >= CONVERT(date, GETDATE())`
+          `SELECT *, CONVERT(varchar(10), Data_rezervare, 120) AS Data_rezervare_str, CONVERT(varchar(8), Ora_start, 108) AS Ora_start_str, CONVERT(varchar(8), Ora_final, 108) AS Ora_final_str FROM REZERVATION WHERE Sala = @sala AND Data_rezervare = CONVERT(date, GETDATE())`
         );
     })
     .then((result) => {
@@ -310,6 +338,79 @@ app.get("/api/reservations/test/:name", function (req, res) {
       console.error("SQL error", err);
       res.status(500).send("Error executing SQL query");
     });
+});
+
+app.get("/api/bookinghistory/:userId/:selectedValue", (req, res) => {
+  const userId = req.params.userId;
+  const selectedValue = req.params.selectedValue;
+
+  sql
+    .connect(dbConfig)
+    .then((pool) => {
+      return pool
+        .request()
+        .input("id_cont", sql.VarChar(5), userId)
+        .input("sala", sql.VarChar(5), selectedValue)
+        .query(
+          `SELECT *, CONVERT(varchar(10), Data_rezervare, 120) AS Data_rezervare_str, CONVERT(varchar(8), Ora_start, 108) AS Ora_start_str, CONVERT(varchar(8), Ora_final, 108) AS Ora_final_str FROM REZERVATION WHERE ID_cont = @id_cont AND Sala = @sala ORDER BY Data_rezervare DESC`
+        );
+    })
+    .then((result) => {
+      if (result.recordset.length > 0) {
+        const bookings = result.recordset.map((booking) => ({
+          bookingDate: booking.Data_rezervare_str,
+          bookingStartTime: booking.Ora_start_str,
+          bookingEndTime: booking.Ora_final_str,
+        }));
+        res.send({
+          bookings,
+        });
+      } else {
+        res.send({
+          bookings: [], // Empty array when no bookings found
+        });
+      }
+    })
+    .catch((err) => {
+      console.error("SQL error", err);
+      res.status(500).send("Error executing SQL query");
+    });
+});
+
+app.get("/api/searchReservations", (req, res) => {
+  const classroom = req.query.classroom;
+  const date = req.query.date;
+  const time = req.query.time;
+
+  sql.connect(dbConfig, (err) => {
+    if (err) {
+      console.log(err);
+      res.status(500).json({ error: "Failed to connect to the database" });
+    } else {
+      const request = new sql.Request();
+      request.input("sala", sql.NVarChar, classroom);
+      request.input("date", sql.Date, date);
+      request.input("time", sql.VarChar, time);
+
+      request.query(
+        "SELECT *, CONVERT(varchar(10), Data_rezervare, 120) AS Data_rezervare_str, CONVERT(varchar(8), Ora_start, 108) AS Ora_start_str, CONVERT(varchar(8), Ora_final, 108) AS Ora_final_str FROM REZERVATION WHERE Sala = @sala AND Data_rezervare = @date AND Ora_final > @time",
+        (err, result) => {
+          if (err) {
+            console.log(err);
+            res.status(500).json({ error: "Failed" });
+          } else {
+            const bookings = result.recordset.map((booking) => ({
+              classroom: booking.Sala,
+              date: booking.Data_rezervare_str,
+              startTime: booking.Ora_start_str,
+              endTime: booking.Ora_final_str,
+            }));
+            res.json(bookings);
+          }
+        }
+      );
+    }
+  });
 });
 
 app.listen(port, () => {

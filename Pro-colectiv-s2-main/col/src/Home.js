@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from "react";
 import RESERVATION from "./RESERVATION";
 import "./table.css";
+import { useNavigate } from "react-router-dom";
 
 function ClassroomTable() {
+  const navigate = useNavigate();
+
   const [classrooms, setClassrooms] = useState([
     {
       id: 1,
@@ -102,7 +105,8 @@ function ClassroomTable() {
 
   const handleReserveClick = (classroom) => {
     setSelectedClassroom(classroom);
-    setShowForm(true);
+    //setShowForm(true);
+    navigate("/ClassroomBooking"); // Redirect to "#/ClassroomBooking" route
   };
 
   const handleDetailsClick = (classroom) => {
@@ -125,8 +129,7 @@ function ClassroomTable() {
       <td>{classroom.capacity}</td>
       <td>{classroom.location}</td>
       <td>{classroom.booked ? "Booked" : "Available"}</td>
-      <td>{classroom.bookingStartTime}</td>
-      <td>{classroom.bookingEndTime}</td>
+
       <td>
         <button onClick={() => handleReserveClick(classroom)}>Reserve</button>
       </td>
@@ -145,8 +148,7 @@ function ClassroomTable() {
             <th>Capacity</th>
             <th>Location</th>
             <th>Status</th>
-            <th>Booking Start Time</th>
-            <th>Booking End Time</th>
+
             <th>Reservation</th>
             <th>Details</th>
           </tr>

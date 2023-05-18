@@ -6,6 +6,7 @@ import "./login.css";
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [userId, setUserId] = useState("");
 
   function validateForm() {
     return email.length > 0 && password.length > 0;
@@ -23,11 +24,20 @@ export default function Login() {
       .then((data) => {
         console.log(data);
 
-        // Redirect the user to the home page
+        if (data.message === "Login successful") {
+          // Save the token to local storage or state variable
+          localStorage.setItem("token", data.token);
 
-        if (data.message === "Login successful") window.location.href = "#/";
-        //else alert("Utilizatorul nu exista sau datele sunt incorecte");
-        else alert(data.error);
+          if (data.userId) {
+            setUserId(data.userId);
+            sessionStorage.setItem("userId", data.userId);
+          }
+
+          // Redirect the user to the home page
+          window.location.href = "#/";
+        } else {
+          alert("Invalid email or password");
+        }
       })
       .catch((error) => console.error(error));
   }
