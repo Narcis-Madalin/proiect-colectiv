@@ -7,6 +7,7 @@ const moment = require("moment");
 const jwt = require("jsonwebtoken");
 const { expressjwt: expressjwt } = require("express-jwt");
 const session = require("express-session");
+const nodemailer = require("nodemailer");
 require("dotenv").config();
 
 const dbConfig = {
@@ -29,6 +30,15 @@ app.use(
 
 const secretKey =
   "a40a1ee84f4322eb0fc6c259823d5d70013ca7b7c3ac03473c4fa88a2c69cda9"; // Replace with your own secret key
+
+var transport = nodemailer.createTransport({
+  host: "sandbox.smtp.mailtrap.io",
+  port: 2525,
+  auth: {
+    user: "38cca3d0076a14",
+    pass: "b88b3f7883a07a",
+  },
+});
 
 app.post("/register", (req, res) => {
   const { name, FirstName, email, password } = req.body;
@@ -176,7 +186,7 @@ app.post("/login", (req, res) => {
 // Middleware to verify JWT
 const authenticate = expressjwt({ secret: secretKey, algorithms: ["RS256"] });
 
-app.post("/Reservation", authenticate, (req, res) => {
+app.post("/Reservation", (req, res) => {
   const { name, email, classroom, date, StartTime, EndTime } = req.body;
 
   // Check the format of the StartTime parameter using a regular expression
@@ -221,6 +231,31 @@ app.post("/Reservation", authenticate, (req, res) => {
                 } else {
                   res.status(200).json({
                     message: "Reservation data inserted successfully",
+                  });
+
+                  // sending the reservation data in the email
+
+                  const message = {
+                    from: "School_Reservations@domain.com",
+                    to: email,
+                    subject: "Datele noii rezervari",
+                    text:
+                      "O noua rezervare a fost alocata pentru sala " +
+                      classroom +
+                      " in data de " +
+                      date +
+                      " intre orele " +
+                      StartTime +
+                      "-" +
+                      EndTime,
+                  };
+
+                  transport.sendMail(message, (err, info) => {
+                    if (err) {
+                      console.log(err);
+                    } else {
+                      console.log(info);
+                    }
                   });
                 }
               }
@@ -379,8 +414,10 @@ app.get("/api/bookinghistory/:userId/:selectedValue", (req, res) => {
 
 app.get("/api/searchReservations", (req, res) => {
   const classroom = req.query.classroom;
-  const date = req.query.date;
-  const time = req.query.time;
+  const startDate = req.query.startDate;
+  const endDate = req.query.endDate;
+
+  console.log(startDate);
 
   sql.connect(dbConfig, (err) => {
     if (err) {
@@ -389,11 +426,11 @@ app.get("/api/searchReservations", (req, res) => {
     } else {
       const request = new sql.Request();
       request.input("sala", sql.NVarChar, classroom);
-      request.input("date", sql.Date, date);
-      request.input("time", sql.VarChar, time);
+      request.input("startDate", sql.Date, startDate);
+      request.input("endDate", sql.Date, endDate);
 
       request.query(
-        "SELECT *, CONVERT(varchar(10), Data_rezervare, 120) AS Data_rezervare_str, CONVERT(varchar(8), Ora_start, 108) AS Ora_start_str, CONVERT(varchar(8), Ora_final, 108) AS Ora_final_str FROM REZERVATION WHERE Sala = @sala AND Data_rezervare = @date AND Ora_final > @time",
+        "SELECT *, CONVERT(varchar(10), Data_rezervare, 120) AS Data_rezervare_str, CONVERT(varchar(8), Ora_start, 108) AS Ora_start_str, CONVERT(varchar(8), Ora_final, 108) AS Ora_final_str FROM REZERVATION WHERE Data_rezervare BETWEEN @startDate AND @endDate",
         (err, result) => {
           if (err) {
             console.log(err);

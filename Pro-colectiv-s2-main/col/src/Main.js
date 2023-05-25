@@ -1,11 +1,12 @@
-import React, { Component } from "react";
+import React, { useState, useEffect } from "react";
 import {
+  BrowserRouter as Router,
+  Routes,
   Route,
   NavLink,
-  HashRouter,
-  Routes,
-  useNavigate,
+  Navigate,
 } from "react-router-dom";
+
 import Home from "./Home";
 import RESERVATION from "./RESERVATION";
 import BOOKINGHISTORY from "./BOOKINGHISTORY";
@@ -15,93 +16,99 @@ import LOGIN from "./LOGIN";
 import ClassroomBooking from "./ClassroomBooking";
 import ReservationSearch from "./ReservationSearch";
 
-class Main extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      isLoggedIn: false,
-    };
-  }
+const Main = () => {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  handleLogout = () => {
-    // Clear any stored tokens or session information
-    // Example: localStorage.removeItem('accessToken');
+  const handleLogout = () => {
+    console.log("token before removal:", localStorage.getItem("token"));
+    console.log("userId before removal:", localStorage.getItem("userId"));
 
-    // Set the isLoggedIn state to false
-    this.setState({ isLoggedIn: false });
-
-    // Clear the token from local storage or state variable
     localStorage.removeItem("token");
-    localStorage.clear();
+    sessionStorage.removeItem("userId");
 
-    // Redirect the user to the login page
-    //window.location.href = "#/LOGIN";
+    console.log("token after removal:", localStorage.getItem("token"));
+    console.log("userId after removal:", localStorage.getItem("userId"));
+
+    setIsLoggedIn(false);
+    console.log("isLoggedIn:", isLoggedIn);
   };
 
-  render() {
-    return (
-      <HashRouter>
-        <div>
-          <h1>UVT BECOME YOUR BEST</h1>
-          <ul className="header">
-            <li>
-              <NavLink to="/">HOME</NavLink>
-            </li>
-            <li>
-              <NavLink to="/BOOKINGHISTORY">BOOKING HISTORY</NavLink>
-            </li>
-            <li>
-              <NavLink to="/ClassroomLocalistion">
-                Classroom Localisation
-              </NavLink>
-            </li>
-            <li>
-              <NavLink to="/ClassroomBooking">Classroom Booking</NavLink>
-            </li>
-            <li>
-              <NavLink to="/ReservationSearch">Reservation Search</NavLink>
-            </li>
-            {this.state.isLoggedIn ? null : (
+  const handleLogin = () => {
+    setIsLoggedIn(true);
+  };
+
+  useEffect(() => {
+    // Check login status from localStorage on component mount
+    const token = localStorage.getItem("token");
+    if (token) {
+      setIsLoggedIn(true);
+    } else {
+      setIsLoggedIn(false);
+    }
+  }, []);
+
+  return (
+    <Router>
+      <div>
+        <h1>UVT BECOME YOUR BEST</h1>
+        <ul className="header">
+          <li>
+            <NavLink exact to="/">
+              HOME
+            </NavLink>
+          </li>
+          <li>
+            <NavLink to="/BOOKINGHISTORY">BOOKING HISTORY</NavLink>
+          </li>
+          <li>
+            <NavLink to="/ClassroomLocalization">
+              Classroom Localization
+            </NavLink>
+          </li>
+          <li>
+            <NavLink to="/ClassroomBooking">Classroom Booking</NavLink>
+          </li>
+          <li>
+            <NavLink to="/ReservationSearch">Reservation Search</NavLink>
+          </li>
+          {!isLoggedIn ? (
+            <>
               <li>
                 <NavLink to="/ACCOUNT">ACCOUNT</NavLink>
               </li>
-            )}
+              <li>
+                <li>
+                  <NavLink to="/LOGIN">LOGIN</NavLink>
+                </li>
+              </li>
+            </>
+          ) : (
             <li>
-              {this.state.isLoggedIn ? (
-                <NavLink to="/" onClick={this.handleLogout}>
-                  Logout
-                </NavLink>
-              ) : (
-                <NavLink exact to="/LOGIN">
-                  LOGIN
-                </NavLink>
-              )}
+              <NavLink to="/" onClick={handleLogout}>
+                Logout
+              </NavLink>
             </li>
-          </ul>
-          <div className="content">
-            <Routes>
-              <Route path="/LOGIN" element={<LOGIN />} />
-              <Route path="/RESERVATION" element={<RESERVATION />} />
-              <Route path="/BOOKINGHISTORY" element={<BOOKINGHISTORY />} />
-              <Route
-                path="/ClassroomLocalistion"
-                element={<ClassroomLocalistion />}
-              />
-              <Route path="/ClassroomBooking" element={<ClassroomBooking />} />
-              <Route
-                path="/ReservationSearch"
-                element={<ReservationSearch />}
-              />
-              {this.state.isLoggedIn ? null : (
-                <Route path="/ACCOUNT" element={<ACCOUNT />} />
-              )}
-              <Route path="/" element={<Home />} />
-            </Routes>
-          </div>
+          )}
+        </ul>
+
+        <div className="content">
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/BOOKINGHISTORY" element={<BOOKINGHISTORY />} />
+            <Route
+              path="/ClassroomLocalization"
+              element={<ClassroomLocalistion />}
+            />
+            <Route path="/ClassroomBooking" element={<ClassroomBooking />} />
+            <Route path="/ReservationSearch" element={<ReservationSearch />} />
+            <Route path="/LOGIN" element={<LOGIN onLogin={handleLogin} />} />
+            {!isLoggedIn && <Route path="/ACCOUNT" element={<ACCOUNT />} />}
+            <Route path="*" element={<Navigate to="/" />} />
+          </Routes>
         </div>
-      </HashRouter>
-    );
-  }
-}
+      </div>
+    </Router>
+  );
+};
 
 export default Main;

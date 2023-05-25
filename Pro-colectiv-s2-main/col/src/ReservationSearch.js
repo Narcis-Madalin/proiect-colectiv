@@ -11,40 +11,46 @@ import {
 } from "@material-ui/core";
 import "./ReservationSearch.css";
 import dayjs from "dayjs";
-import { DemoContainer } from "@mui/x-date-pickers/internals/demo";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
+
+import { DateRangePicker } from "react-date-range";
+import { addDays, formatISO } from "date-fns";
+
+import "react-date-range/dist/styles.css"; // main css file
+import "react-date-range/dist/theme/default.css"; // theme css file
 
 const ReservationSearch = () => {
-  const [selectedClassroom, setSelectedClassroom] = useState("");
-  const [selectedDate, setSelectedDate] = useState(null);
-  const [selectedTime, setSelectedTime] = useState(null);
+  const [selectedDates, setSelectedDates] = useState([
+    {
+      startDate: new Date(),
+      endDate: addDays(new Date(), 7),
+      key: "selection",
+    },
+  ]);
   const [reservations, setReservations] = useState([]);
 
-  const handleClassroomChange = (event) => {
-    setSelectedClassroom(event.target.value);
-  };
-
-  const handleDateTimeChange = (newValue) => {
-    setSelectedDate(newValue.format("YYYY-MM-DD"));
-    setSelectedTime(newValue.format("HH:mm:ss"));
+  const handleDateTimeChange = (ranges) => {
+    setSelectedDates([ranges.selection]);
   };
 
   const handleSearch = () => {
+    const startDate = selectedDates[0]?.startDate;
+    const endDate = selectedDates[0]?.endDate;
+
+    // formatez data sa corespunda cu cele din baza de date
     const searchData = {
-      classroom: selectedClassroom,
-      date: selectedDate,
-      time: selectedTime,
+      startDate: selectedDates[0]?.startDate
+        ? dayjs(startDate).format("YYYY-MM-DD")
+        : "",
+      endDate: selectedDates[0]?.endDate
+        ? dayjs(endDate).format("YYYY-MM-DD")
+        : "",
     };
 
     console.log(searchData);
 
-    const url = `/api/searchReservations?classroom=${encodeURIComponent(
-      searchData.classroom
-    )}&date=${encodeURIComponent(searchData.date)}&time=${encodeURIComponent(
-      searchData.time
-    )}`;
+    const url = `/api/searchReservations?startDate=${encodeURIComponent(
+      searchData.startDate
+    )}&endDate=${encodeURIComponent(searchData.endDate)}`;
 
     fetch(url)
       .then((response) => {
@@ -66,30 +72,14 @@ const ReservationSearch = () => {
     <div className="container">
       <div className="formContainer">
         <div className="formRow">
-          <select
-            className="select"
-            value={selectedClassroom}
-            onChange={handleClassroomChange}
-          >
-            <option value="">--Select an option--</option>
-            <option value="A1">Sala A1</option>
-            <option value="A2">Sala A2</option>
-            <option value="A3">Sala A3</option>
-            <option value="A4">Sala A4</option>
-            <option value="B1">Sala B1</option>
-            <option value="B2">Sala B2</option>
-            <option value="B3">Sala B3</option>
-            <option value="B4">Sala B4</option>
-          </select>
-
-          <LocalizationProvider dateAdapter={AdapterDayjs}>
-            <DateTimePicker
-              className="datePicker"
-              label="Data si ora"
-              value={selectedDate}
-              onChange={handleDateTimeChange}
-            />
-          </LocalizationProvider>
+          <DateRangePicker
+            onChange={handleDateTimeChange}
+            showSelectionPreview={true}
+            moveRangeOnFirstSelection={false}
+            months={2}
+            ranges={selectedDates}
+            direction="horizontal"
+          />
 
           <Button
             className="searchButton"

@@ -141,6 +141,7 @@ function ClassroomTable() {
 
   return (
     <div>
+      <h2>Sali disponibile pentru rezervare</h2>
       <table>
         <thead>
           <tr>

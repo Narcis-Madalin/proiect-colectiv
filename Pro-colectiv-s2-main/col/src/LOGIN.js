@@ -2,11 +2,14 @@ import React, { useState } from "react";
 import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
 import "./login.css";
+import { useNavigate } from "react-router-dom";
 
-export default function Login() {
+export default function Login({ onLogin }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [userId, setUserId] = useState("");
+
+  const navigate = useNavigate();
 
   function validateForm() {
     return email.length > 0 && password.length > 0;
@@ -33,8 +36,11 @@ export default function Login() {
             sessionStorage.setItem("userId", data.userId);
           }
 
+          // Call the onLogin callback to update the isLoggedIn state
+          onLogin();
+
           // Redirect the user to the home page
-          window.location.href = "#/";
+          navigate("/");
         } else {
           alert("Invalid email or password");
         }
