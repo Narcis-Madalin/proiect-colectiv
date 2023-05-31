@@ -3,7 +3,7 @@ import "./bookinghistory.css";
 
 function BOOKINGHISTORY() {
   const [bookingData, setBookingData] = useState(null);
-  const userId = sessionStorage.getItem("userId");
+  const userId = localStorage.getItem("userId");
   const [selectedValue, setSelectedValue] = useState("");
 
   const handleChange = (event) => {

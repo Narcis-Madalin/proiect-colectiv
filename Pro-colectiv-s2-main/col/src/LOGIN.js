@@ -4,10 +4,15 @@ import Button from "react-bootstrap/Button";
 import "./login.css";
 import { useNavigate } from "react-router-dom";
 
+import Alert from "@mui/material/Alert";
+import AlertTitle from "@mui/material/AlertTitle";
+import Stack from "@mui/material/Stack";
+
 export default function Login({ onLogin }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [userId, setUserId] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
 
   const navigate = useNavigate();
 
@@ -33,7 +38,7 @@ export default function Login({ onLogin }) {
 
           if (data.userId) {
             setUserId(data.userId);
-            sessionStorage.setItem("userId", data.userId);
+            localStorage.setItem("userId", data.userId);
           }
 
           // Call the onLogin callback to update the isLoggedIn state
@@ -42,7 +47,10 @@ export default function Login({ onLogin }) {
           // Redirect the user to the home page
           navigate("/");
         } else {
-          alert("Invalid email or password");
+          setErrorMessage(
+            "Parola introdusa este gresita sau nu exista cont cu acest email"
+          );
+          //alert("Invalid email or password");
         }
       })
       .catch((error) => console.error(error));
@@ -68,6 +76,12 @@ export default function Login({ onLogin }) {
             onChange={(e) => setPassword(e.target.value)}
           />
         </Form.Group>
+        {errorMessage && (
+          <Alert severity="error">
+            <AlertTitle>Error</AlertTitle>
+            {errorMessage} — <strong>Reintrodu Datele</strong>
+          </Alert>
+        )}
         <Button block="true" size="lg" type="submit" disabled={!validateForm()}>
           Login
         </Button>

@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "./reservation.css";
 
 function ReservationPage() {
@@ -8,6 +9,8 @@ function ReservationPage() {
   const [date, setDate] = useState("");
   const [StartTime, setStartTime] = useState("");
   const [EndTime, setEndTime] = useState("");
+
+  const navigate = useNavigate();
 
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -33,7 +36,7 @@ function ReservationPage() {
         // Redirect the user to the home page
 
         if (data.message === "Reservation data inserted successfully")
-          window.location.href = "#/";
+          navigate("/");
         //else alert("Utilizatorul nu exista sau datele sunt incorecte");
         else alert(data.error);
       })

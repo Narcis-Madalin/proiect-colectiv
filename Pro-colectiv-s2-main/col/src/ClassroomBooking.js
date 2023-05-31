@@ -10,18 +10,10 @@ import {
 } from "@material-ui/core";
 import "./ClassroomBooking.css";
 import ReservationPage from "./RESERVATION";
-import { DemoContainer } from "@mui/x-date-pickers/internals/demo";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
-import { Button } from "@mui/material";
-import { AuthContext } from "./AuthContext";
 
 const ClassroomBooking = () => {
   const [selectedClassroom, setSelectedClassroom] = useState(null);
   const [reservationSubmitted, setReservationSubmitted] = useState(false);
-
-  const [selectedDateTime, setSelectedDateTime] = React.useState(new Date());
 
   //   function setClassrooms(arr) {
   //     classrooms = arr;
@@ -175,33 +167,6 @@ const ClassroomBooking = () => {
       .catch((error) => console.error(error));
   };
 
-  const handleFilter = (reservation) => {
-    if (!selectedDate) {
-      return true; // Show all reservations when no date is selected
-    }
-    return reservation.date === selectedDate; // Filter reservations by selected date
-  };
-
-  const handleDateTimeChange = (selectedDateTime) => {
-    console.log("Selected Date and Time:", selectedDateTime);
-  };
-
-  // Adjust the hour based on the desired time zone offset
-  const adjustTimeZoneOffset = (date) => {
-    const timeZoneOffset = 180; // Replace with the desired time zone offset in minutes
-    const adjustedDate = new Date(date.getTime() + timeZoneOffset * 60 * 1000);
-    return adjustedDate;
-  };
-
-  const handleOkButtonClick = () => {
-    if (selectedDateTime) {
-      // Display the selected date and time
-      console.log(selectedDateTime.toString());
-    } else {
-      console.log("No date and time selected.");
-    }
-  };
-
   // const c = (classroom) => {
   //   fetch(`/api/reservations/${classroom.name}`)
   //     .then((response) => response.json())
@@ -289,18 +254,7 @@ const ClassroomBooking = () => {
 
       {selectedClassroom && selectedClassroom.reservations && (
         <div>
-          <h3>Reservations</h3>
-          <LocalizationProvider dateAdapter={AdapterDayjs}>
-            <DemoContainer components={["DateTimePicker"]}>
-              <DateTimePicker
-                label="Basic date time picker"
-                onChange={handleDateTimeChange}
-              />
-            </DemoContainer>
-          </LocalizationProvider>
-          <Button variant="contained" onClick={handleOkButtonClick}>
-            OK
-          </Button>
+          <h3>Today's Reservations</h3>
           <TableContainer component={Paper}>
             <Table aria-label="reservations">
               <TableHead>

@@ -430,7 +430,7 @@ app.get("/api/searchReservations", (req, res) => {
       request.input("endDate", sql.Date, endDate);
 
       request.query(
-        "SELECT *, CONVERT(varchar(10), Data_rezervare, 120) AS Data_rezervare_str, CONVERT(varchar(8), Ora_start, 108) AS Ora_start_str, CONVERT(varchar(8), Ora_final, 108) AS Ora_final_str FROM REZERVATION WHERE Data_rezervare BETWEEN @startDate AND @endDate",
+        "SELECT *, CONVERT(varchar(10), Data_rezervare, 120) AS Data_rezervare_str, CONVERT(varchar(8), Ora_start, 108) AS Ora_start_str, CONVERT(varchar(8), Ora_final, 108) AS Ora_final_str FROM REZERVATION WHERE Data_rezervare BETWEEN @startDate AND @endDate ORDER BY Data_rezervare",
         (err, result) => {
           if (err) {
             console.log(err);

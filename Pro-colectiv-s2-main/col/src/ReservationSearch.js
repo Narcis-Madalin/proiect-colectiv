@@ -1,14 +1,5 @@
 import React, { useState } from "react";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  Button,
-} from "@material-ui/core";
+import { Button } from "@material-ui/core";
 import "./ReservationSearch.css";
 import dayjs from "dayjs";
 
@@ -17,6 +8,8 @@ import { addDays, formatISO } from "date-fns";
 
 import "react-date-range/dist/styles.css"; // main css file
 import "react-date-range/dist/theme/default.css"; // theme css file
+
+import StickyHeadTable from "./StickyHeadTable";
 
 const ReservationSearch = () => {
   const [selectedDates, setSelectedDates] = useState([
@@ -27,6 +20,13 @@ const ReservationSearch = () => {
     },
   ]);
   const [reservations, setReservations] = useState([]);
+
+  const coloane = [
+    { id: "classroom", label: "Classroom", minWidth: 100 },
+    { id: "date", label: "Date", minWidth: 100 },
+    { id: "startTime", label: "Start Time", minWidth: 100 },
+    { id: "endTime", label: "End Time", minWidth: 100 },
+  ];
 
   const handleDateTimeChange = (ranges) => {
     setSelectedDates([ranges.selection]);
@@ -93,28 +93,7 @@ const ReservationSearch = () => {
       </div>
 
       <div className="tableContainer">
-        <TableContainer component={Paper}>
-          <Table aria-label="reservations">
-            <TableHead>
-              <TableRow>
-                <TableCell>Classroom</TableCell>
-                <TableCell align="right">Date</TableCell>
-                <TableCell align="right">Start Time</TableCell>
-                <TableCell align="right">End Time</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {reservations.map((reservation, index) => (
-                <TableRow key={index}>
-                  <TableCell>{reservation.classroom}</TableCell>
-                  <TableCell align="right">{reservation.date}</TableCell>
-                  <TableCell align="right">{reservation.startTime}</TableCell>
-                  <TableCell align="right">{reservation.endTime}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+        <StickyHeadTable columns={coloane} data={reservations} />
       </div>
     </div>
   );

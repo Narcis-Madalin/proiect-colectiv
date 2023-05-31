@@ -15,6 +15,7 @@ import ACCOUNT from "./ACCOUNT";
 import LOGIN from "./LOGIN";
 import ClassroomBooking from "./ClassroomBooking";
 import ReservationSearch from "./ReservationSearch";
+import AvailabilitySearch from "./AvailabilitySearch";
 
 const Main = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -24,7 +25,7 @@ const Main = () => {
     console.log("userId before removal:", localStorage.getItem("userId"));
 
     localStorage.removeItem("token");
-    sessionStorage.removeItem("userId");
+    localStorage.removeItem("userId");
 
     console.log("token after removal:", localStorage.getItem("token"));
     console.log("userId after removal:", localStorage.getItem("userId"));
@@ -71,6 +72,9 @@ const Main = () => {
           <li>
             <NavLink to="/ReservationSearch">Reservation Search</NavLink>
           </li>
+          <li>
+            <NavLink to="/AvailabilitySearch">Availability Search</NavLink>
+          </li>
           {!isLoggedIn ? (
             <>
               <li>
@@ -101,6 +105,10 @@ const Main = () => {
             />
             <Route path="/ClassroomBooking" element={<ClassroomBooking />} />
             <Route path="/ReservationSearch" element={<ReservationSearch />} />
+            <Route
+              path="/AvailabilitySearch"
+              element={<AvailabilitySearch />}
+            />
             <Route path="/LOGIN" element={<LOGIN onLogin={handleLogin} />} />
             {!isLoggedIn && <Route path="/ACCOUNT" element={<ACCOUNT />} />}
             <Route path="*" element={<Navigate to="/" />} />

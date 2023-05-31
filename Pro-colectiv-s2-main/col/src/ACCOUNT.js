@@ -1,4 +1,9 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+
+import Alert from "@mui/material/Alert";
+import AlertTitle from "@mui/material/AlertTitle";
+import Stack from "@mui/material/Stack";
 
 function AccountPage() {
   const [name, setName] = useState("");
@@ -6,6 +11,9 @@ function AccountPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [error, setError] = useState("");
+
+  const navigate = useNavigate();
 
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -13,9 +21,9 @@ function AccountPage() {
 
     // Send the account information to the server
     if (password !== confirmPassword) {
-      setError("Passwords do not match");
+      setError("Parolele introduse nu sunt identice");
       console.log(error);
-      return error;
+      return;
     }
 
     fetch("/register", {
@@ -29,9 +37,8 @@ function AccountPage() {
 
         // Redirect the user to the login page
 
-        if (data.message === "Registration successful")
-          window.location.href = "#/LOGIN";
-        else alert(data.error);
+        if (data.message === "Registration successful") navigate("/LOGIN");
+        else setError(data.error);
       })
       .catch((error) => console.error(error));
   };
@@ -85,6 +92,12 @@ function AccountPage() {
           />
         </label>
         <br />
+        {error && (
+          <Alert severity="error">
+            <AlertTitle>Error</AlertTitle>
+            {error} — <strong>Reintrodu Datele</strong>
+          </Alert>
+        )}
         <button type="submit">Create Account</button>
       </form>
     </div>

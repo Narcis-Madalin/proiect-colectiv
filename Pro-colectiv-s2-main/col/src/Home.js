@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import RESERVATION from "./RESERVATION";
 import "./table.css";
 import { useNavigate } from "react-router-dom";
+import CustomizedDialogs from "./CustomizedDialogs";
 
 function ClassroomTable() {
   const navigate = useNavigate();
@@ -83,6 +84,7 @@ function ClassroomTable() {
 
   const [selectedClassroom, setSelectedClassroom] = useState(null);
   const [showForm, setShowForm] = useState(false);
+  const [showDialog, setShowDialog] = useState(false);
 
   useEffect(() => {
     classrooms.forEach((classroom) => {
@@ -105,13 +107,12 @@ function ClassroomTable() {
 
   const handleReserveClick = (classroom) => {
     setSelectedClassroom(classroom);
-    //setShowForm(true);
-    navigate("/ClassroomBooking"); // Redirect to "#/ClassroomBooking" route
+    navigate("/ClassroomBooking");
   };
 
   const handleDetailsClick = (classroom) => {
-    alert(`Classroom name: ${classroom.name}\nCapacity: ${classroom.capacity}\nLocation: ${classroom.location}
-      This classroom can be booked only from Monday to Friday and from 8am to 6pm`);
+    setSelectedClassroom(classroom);
+    setShowDialog(true);
   };
 
   const handleFormClose = () => {
@@ -129,7 +130,6 @@ function ClassroomTable() {
       <td>{classroom.capacity}</td>
       <td>{classroom.location}</td>
       <td>{classroom.booked ? "Booked" : "Available"}</td>
-
       <td>
         <button onClick={() => handleReserveClick(classroom)}>Reserve</button>
       </td>
@@ -149,7 +149,6 @@ function ClassroomTable() {
             <th>Capacity</th>
             <th>Location</th>
             <th>Status</th>
-
             <th>Reservation</th>
             <th>Details</th>
           </tr>
@@ -158,6 +157,12 @@ function ClassroomTable() {
       </table>
       {showForm && (
         <RESERVATION classroom={selectedClassroom} onClose={handleFormClose} />
+      )}
+      {showDialog && (
+        <CustomizedDialogs
+          classroom={selectedClassroom}
+          onClose={() => setShowDialog(false)}
+        />
       )}
     </div>
   );
